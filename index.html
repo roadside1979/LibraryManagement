@@ -4,7 +4,7 @@
   <title>蔵書管理システム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- html5-qrcode ライブラリの正しいCDN -->
-  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.9/html5-qrcode.min.js"></script>
   <style>
   body {
     font-family: Arial, sans-serif;
@@ -116,6 +116,11 @@
   
   <!-- スクリプト -->
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
+  // スキャン開始と停止のボタン設定
+  document.getElementById('startScan').addEventListener('click', startBarcodeScan);
+  document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
+});
     const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
     let html5QrcodeScanner;
 
@@ -208,19 +213,19 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
       };
 
       try {
-    html5QrcodeScanner = new Html5Qrcode("reader");
-    html5QrcodeScanner.start(
-      { facingMode: "environment" },
-      config,
-      qrCodeSuccessCallback
-    ).catch(err => {
-      console.error("スキャン開始エラー:", err);
-      alert("カメラの起動に失敗しました: " + err.message);
-    });
-  } catch (err) {
-    console.error("スキャン初期化エラー:", err);
-    alert("スキャンの初期化に失敗しました: " + err.message);
-  }
+  html5QrcodeScanner = new Html5Qrcode("reader");
+  html5QrcodeScanner.start(
+    { facingMode: "environment" },
+    config,
+    qrCodeSuccessCallback
+  ).catch(err => {
+    console.error("スキャン開始エラー: Html5Qrcode の start メソッドでエラーが発生しました。", err);
+    alert("カメラの起動に失敗しました: " + err.message);
+  });
+} catch (err) {
+  console.error("初期化エラー:", err);
+  alert("Html5Qrcode の初期化に失敗しました: " + err.message);
+}
       document.getElementById('startScan').style.display = "none";
       document.getElementById('stopScan').style.display = "block";
     }
