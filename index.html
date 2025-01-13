@@ -128,5 +128,30 @@
   </script>
 
   <div id="errorLog" style="color: red; font-weight: bold; margin-top: 20px;"></div>
+
+  <div id="editSection" style="display: none; margin-top: 20px;">
+  <h2>スキャンデータの確認・編集</h2>
+  <form id="editForm">
+    <label>ISBNコード: <input type="text" id="editIsbn" name="isbn" readonly></label><br>
+    <label>タイトル: <input type="text" id="editTitle" name="title"></label><br>
+    <label>著者: <input type="text" id="editAuthor" name="author"></label><br>
+    <label>出版年: <input type="number" id="editYear" name="year"></label><br>
+    <label>ジャンル: <input type="text" id="editGenre" name="genre"></label><br>
+    <label>所蔵場所:
+      <select id="editLocation" name="location">
+        <option value="自宅">自宅</option>
+        <option value="研究室">研究室</option>
+      </select>
+    </label><br>
+    <label>貸出状況:
+      <select id="editStatus" name="status">
+        <option value="在庫">在庫</option>
+        <option value="貸出中">貸出中</option>
+      </select>
+    </label><br>
+    <button type="button" id="saveEdit">登録</button>
+  </form>
+</div>
+
 </body>
 </html>
