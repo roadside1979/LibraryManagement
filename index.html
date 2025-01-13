@@ -2,8 +2,64 @@
 <html>
 <head>
   <title>蔵書管理システム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- html5-qrcode ライブラリの正しいCDN -->
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.5em;
+    margin-top: 10px;
+  }
+
+  form, #editSection, #reader {
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  #reader {
+    width: 100%;
+    height: auto;
+  }
+
+  @media (min-width: 768px) {
+    form, #editSection, #reader {
+      max-width: 50%;
+    }
+  }
+</style>
 </head>
 <body>
   <h1>蔵書管理システム</h1>
@@ -135,6 +191,13 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
 
     // バーコードスキャンの開始
     function startBarcodeScan() {
+      const config = { 
+  fps: 10, 
+  qrbox: (viewfinderWidth) => {
+    const minWidth = Math.min(viewfinderWidth, 250); // 最大幅を250pxに制限
+    return { width: minWidth, height: minWidth };
+  } 
+};
       const qrCodeSuccessCallback = async (decodedText) => {
         alert(`ISBN: ${decodedText} をスキャンしました！`);
         await fetchBookInfo(decodedText);
