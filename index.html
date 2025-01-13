@@ -132,7 +132,7 @@
     return;
   }
 
-  const url = https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY};
+  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY}`;
   try {
     const response = await fetch(url);
     const data = await response.json();
@@ -199,7 +199,7 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
   } 
 };
       const qrCodeSuccessCallback = async (decodedText) => {
-        alert(ISBN: ${decodedText} をスキャンしました！);
+        alert(`ISBN: ${decodedText} をスキャンしました！`);
         await fetchBookInfo(decodedText);
 
         html5QrcodeScanner.clear();
@@ -208,21 +208,19 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
       };
 
       try {
-  html5QrcodeScanner = new Html5Qrcode("reader");
-  html5QrcodeScanner.start(
-    { facingMode: "environment" }, 
-    config,
-    qrCodeSuccessCallback
-  ).catch(err => {
-    console.error("スキャン開始エラー:", err);
-    alert("カメラの起動に失敗しました: " + err.message);
-  });
-} catch (err) {
-  console.error("スキャン初期化エラー:", err);
-  alert("スキャンの初期化に失敗しました: " + err.message);
-}
-
-
+    html5QrcodeScanner = new Html5Qrcode("reader");
+    html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      qrCodeSuccessCallback
+    ).catch(err => {
+      console.error("スキャン開始エラー:", err);
+      alert("カメラの起動に失敗しました: " + err.message);
+    });
+  } catch (err) {
+    console.error("スキャン初期化エラー:", err);
+    alert("スキャンの初期化に失敗しました: " + err.message);
+  }
       document.getElementById('startScan').style.display = "none";
       document.getElementById('stopScan').style.display = "block";
     }
