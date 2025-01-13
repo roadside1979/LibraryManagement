@@ -33,6 +33,31 @@
     <button id="stopScan" style="display:none;">スキャン停止</button>
   </div>
 
+<!-- 編集用フォーム -->
+  <div id="editSection" style="display: none; margin-top: 20px;">
+    <h2>スキャンデータの確認・編集</h2>
+    <form id="editForm">
+      <label>ISBNコード: <input type="text" id="editIsbn" name="isbn" readonly></label><br>
+      <label>タイトル: <input type="text" id="editTitle" name="title"></label><br>
+      <label>著者: <input type="text" id="editAuthor" name="author"></label><br>
+      <label>出版年: <input type="number" id="editYear" name="year"></label><br>
+      <label>ジャンル: <input type="text" id="editGenre" name="genre"></label><br>
+      <label>所蔵場所:
+        <select id="editLocation" name="location">
+          <option value="自宅">自宅</option>
+          <option value="研究室">研究室</option>
+        </select>
+      </label><br>
+      <label>貸出状況:
+        <select id="editStatus" name="status">
+          <option value="在庫">在庫</option>
+          <option value="貸出中">貸出中</option>
+        </select>
+      </label><br>
+      <button type="button" id="saveEdit">登録</button>
+    </form>
+  </div>
+  
   <!-- スクリプト -->
   <script>
     const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
@@ -46,46 +71,67 @@
 
     // ISBN情報をGoogle Books API経由で取得して登録
     async function fetchBookInfo(isbn) {
-      if (!isbn) {
-        alert('ISBNコードを入力してください。');
-        return;
-      }
+  if (!isbn) {
+    alert('ISBNコードを入力してください。');
+    return;
+  }
 
-      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY}`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
+  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
 
-        if (data.totalItems === 0) {
-          alert('該当する本が見つかりませんでした。');
-          return;
-        }
-
-        const book = data.items[0].volumeInfo;
-        const params = new URLSearchParams({
-          isbn: isbn,
-          title: book.title || '',
-          author: book.authors ? book.authors.join(', ') : '',
-          year: book.publishedDate ? book.publishedDate.split('-')[0] : '',
-          genre: book.categories ? book.categories[0] : '',
-          location: '自宅',
-          status: '在庫'
-        });
-
-        const addBookUrl = 'https://script.google.com/macros/s/AKfycbzefs0Z-dnk_trUBQoMtabhqhujLYA-v4jJJywTXyOoMSmQ_JZr-s-3_a3sftao3QRDSg/exec?action=addBook&' + params;
-        const addBookResponse = await fetch(addBookUrl);
-        const result = await addBookResponse.json();
-
-        if (result.success) {
-          alert('本の情報をスプレッドシートに登録しました！');
-        } else {
-          alert('スプレッドシートへの登録に失敗しました。');
-        }
-      } catch (error) {
-        console.error('エラー:', error);
-        logError('Google Books APIエラー: ' + error.message);
-      }
+    if (data.totalItems === 0) {
+      alert('該当する本が見つかりませんでした。');
+      return;
     }
+
+    const book = data.items[0].volumeInfo;
+
+    // 自動入力されたデータを編集フォームに反映
+    document.getElementById('editIsbn').value = isbn;
+    document.getElementById('editTitle').value = book.title || '';
+    document.getElementById('editAuthor').value = book.authors ? book.authors.join(', ') : '';
+    document.getElementById('editYear').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
+    document.getElementById('editGenre').value = book.categories ? book.categories[0] : '';
+    document.getElementById('editLocation').value = '自宅';
+    document.getElementById('editStatus').value = '在庫';
+
+    // 編集フォームを表示
+    document.getElementById('editSection').style.display = 'block';
+  } catch (error) {
+    console.error('エラー:', error);
+    alert('情報の取得に失敗しました。');
+  }
+}
+
+document.getElementById('saveEdit').addEventListener('click', async () => {
+  const params = new URLSearchParams({
+    isbn: document.getElementById('editIsbn').value,
+    title: document.getElementById('editTitle').value,
+    author: document.getElementById('editAuthor').value,
+    year: document.getElementById('editYear').value,
+    genre: document.getElementById('editGenre').value,
+    location: document.getElementById('editLocation').value,
+    status: document.getElementById('editStatus').value,
+  });
+
+  const addBookUrl = 'https://script.google.com/macros/s/AKfycbzefs0Z-dnk_trUBQoMtabhqhujLYA-v4jJJywTXyOoMSmQ_JZr-s-3_a3sftao3QRDSg/exec?action=addBook&' + params;
+  try {
+    const response = await fetch(addBookUrl);
+    const result = await response.json();
+
+    if (result.success) {
+      alert('本の情報をスプレッドシートに登録しました！');
+      document.getElementById('editSection').style.display = 'none'; // フォームを非表示
+    } else {
+      alert('スプレッドシートへの登録に失敗しました。');
+    }
+  } catch (error) {
+    console.error('エラー:', error);
+    alert('登録処理に失敗しました。');
+  }
+});
 
     // バーコードスキャンの開始
     function startBarcodeScan() {
