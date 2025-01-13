@@ -6,60 +6,60 @@
   <!-- html5-qrcode ライブラリの正しいCDN -->
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
-  body {
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-  }
-
-  h1 {
-    text-align: center;
-    font-size: 1.5em;
-    margin-top: 10px;
-  }
-
-  form, #editSection, #reader {
-    max-width: 90%;
-    margin: 20px auto;
-    padding: 15px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  input, select, button {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-
-  button {
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background-color: #0056b3;
-  }
-
-  #reader {
-    width: 100%;
-    height: auto;
-  }
-
-  @media (min-width: 768px) {
-    form, #editSection, #reader {
-      max-width: 50%;
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
     }
-  }
-</style>
+
+    h1 {
+      text-align: center;
+      font-size: 1.5em;
+      margin-top: 10px;
+    }
+
+    form, #editSection, #reader {
+      max-width: 90%;
+      margin: 20px auto;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #reader {
+      width: 100%;
+      height: auto;
+    }
+
+    @media (min-width: 768px) {
+      form, #editSection, #reader {
+        max-width: 50%;
+      }
+    }
+  </style>
 </head>
 <body>
   <h1>蔵書管理システム</h1>
@@ -89,7 +89,7 @@
     <button id="stopScan" style="display:none;">スキャン停止</button>
   </div>
 
-<!-- 編集用フォーム -->
+  <!-- 編集用フォーム -->
   <div id="editSection" style="display: none; margin-top: 20px;">
     <h2>スキャンデータの確認・編集</h2>
     <form id="editForm">
@@ -116,110 +116,40 @@
   
   <!-- スクリプト -->
   <script>
-    const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
     let html5QrcodeScanner;
-
-    // エラーログ表示用関数
-    function logError(message) {
-      const errorLog = document.getElementById('errorLog');
-      errorLog.textContent = message;
-    }
-
-    // ISBN情報をGoogle Books API経由で取得して登録
-    async function fetchBookInfo(isbn) {
-  if (!isbn) {
-    alert('ISBNコードを入力してください。');
-    return;
-  }
-
-  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY}`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.totalItems === 0) {
-      alert('該当する本が見つかりませんでした。');
-      return;
-    }
-
-    const book = data.items[0].volumeInfo;
-
-    // 自動入力されたデータを編集フォームに反映
-    document.getElementById('editIsbn').value = isbn;
-    document.getElementById('editTitle').value = book.title || '';
-    document.getElementById('editAuthor').value = book.authors ? book.authors.join(', ') : '';
-    document.getElementById('editYear').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
-    document.getElementById('editGenre').value = book.categories ? book.categories[0] : '';
-    document.getElementById('editLocation').value = '自宅';
-    document.getElementById('editStatus').value = '在庫';
-
-    // 編集フォームを表示
-    document.getElementById('editSection').style.display = 'block';
-  } catch (error) {
-    console.error('エラー:', error);
-    alert('情報の取得に失敗しました。');
-  }
-}
-
-document.getElementById('saveEdit').addEventListener('click', async () => {
-  const params = new URLSearchParams({
-    isbn: document.getElementById('editIsbn').value,
-    title: document.getElementById('editTitle').value,
-    author: document.getElementById('editAuthor').value,
-    year: document.getElementById('editYear').value,
-    genre: document.getElementById('editGenre').value,
-    location: document.getElementById('editLocation').value,
-    status: document.getElementById('editStatus').value,
-  });
-
-  const addBookUrl = 'https://script.google.com/macros/s/AKfycbyrjD59Bq9X3UUpJBSneRS5UCcHclMxC3sgKaayiQlfjODWRbymdWhul3mlLp6sSCnZAg/exec?action=addBook&' + params;
-  try {
-    const response = await fetch(addBookUrl);
-    const result = await response.json();
-
-    if (result.success) {
-      alert('本の情報をスプレッドシートに登録しました！');
-      document.getElementById('editSection').style.display = 'none'; // フォームを非表示
-    } else {
-      alert(result.message || '登録に失敗しました。');
-    }
-  } catch (error) {
-    console.error('エラー:', error);
-    alert('登録処理に失敗しました。');
-  }
-});
 
     // バーコードスキャンの開始
     function startBarcodeScan() {
-      const config = { 
-  fps: 10, 
-  qrbox: (viewfinderWidth) => {
-    const minWidth = Math.min(viewfinderWidth, 250); // 最大幅を250pxに制限
-    return { width: minWidth, height: minWidth };
-  } 
-};
-      const qrCodeSuccessCallback = async (decodedText) => {
+      const qrCodeSuccessCallback = (decodedText) => {
         alert(`ISBN: ${decodedText} をスキャンしました！`);
-        await fetchBookInfo(decodedText);
-
-        html5QrcodeScanner.clear();
-        document.getElementById('stopScan').style.display = "none";
-        document.getElementById('startScan').style.display = "block";
+        stopBarcodeScan();
       };
 
-      const config = { fps: 10, qrbox: 250 };
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        config,
-        qrCodeSuccessCallback
-      ).catch(err => {
-        console.error("スキャン開始エラー:", err);
-        logError("カメラの起動に失敗しました。詳細: " + err.message);
-      });
+      const config = { 
+        fps: 10, 
+        qrbox: (viewfinderWidth) => {
+          const minWidth = Math.min(viewfinderWidth, 250); // 最大幅を250pxに制限
+          return { width: minWidth, height: minWidth };
+        }
+      };
 
-      document.getElementById('startScan').style.display = "none";
-      document.getElementById('stopScan').style.display = "block";
+      try {
+        html5QrcodeScanner = new Html5Qrcode("reader");
+        html5QrcodeScanner.start(
+          { facingMode: "environment" }, // 背面カメラを指定
+          config,
+          qrCodeSuccessCallback
+        ).catch(err => {
+          console.error("スキャン開始エラー:", err);
+          alert("カメラの起動に失敗しました: " + err.message);
+        });
+
+        document.getElementById('startScan').style.display = "none";
+        document.getElementById('stopScan').style.display = "block";
+      } catch (err) {
+        console.error("スキャン初期化エラー:", err);
+        alert("スキャンの初期化に失敗しました: " + err.message);
+      }
     }
 
     // バーコードスキャンの停止
@@ -231,36 +161,9 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
       document.getElementById('startScan').style.display = "block";
     }
 
-    // スキャンボタンのイベントリスナー
+    // イベントリスナーの設定
     document.getElementById('startScan').addEventListener('click', startBarcodeScan);
     document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
   </script>
-
-  <div id="errorLog" style="color: red; font-weight: bold; margin-top: 20px;"></div>
-
-  <div id="editSection" style="display: none; margin-top: 20px;">
-  <h2>スキャンデータの確認・編集</h2>
-  <form id="editForm">
-    <label>ISBNコード: <input type="text" id="editIsbn" name="isbn" readonly></label><br>
-    <label>タイトル: <input type="text" id="editTitle" name="title"></label><br>
-    <label>著者: <input type="text" id="editAuthor" name="author"></label><br>
-    <label>出版年: <input type="number" id="editYear" name="year"></label><br>
-    <label>ジャンル: <input type="text" id="editGenre" name="genre"></label><br>
-    <label>所蔵場所:
-      <select id="editLocation" name="location">
-        <option value="自宅">自宅</option>
-        <option value="研究室">研究室</option>
-      </select>
-    </label><br>
-    <label>貸出状況:
-      <select id="editStatus" name="status">
-        <option value="在庫">在庫</option>
-        <option value="貸出中">貸出中</option>
-      </select>
-    </label><br>
-    <button type="button" id="saveEdit">登録</button>
-  </form>
-</div>
-
 </body>
 </html>
