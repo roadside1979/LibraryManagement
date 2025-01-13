@@ -94,13 +94,13 @@
   const config = { fps: 10, qrbox: 250 };
   html5QrcodeScanner = new Html5Qrcode("reader");
   html5QrcodeScanner.start(
-    { facingMode: "environment" },
-    config,
-    qrCodeSuccessCallback
-  ).catch(err => {
-    console.error("スキャン開始エラー:", err); // コンソールにエラーを出力
-    alert("カメラの起動に失敗しました。詳細: " + err.message); // 詳細をダイアログに表示
-  });
+  { facingMode: "environment" },
+  config,
+  qrCodeSuccessCallback
+).catch(err => {
+  logError("カメラの起動に失敗しました。詳細: " + err.message);
+});
+
 
   document.getElementById('startScan').style.display = "none";
   document.getElementById('stopScan').style.display = "block";
@@ -119,5 +119,14 @@
     document.getElementById('startScan').addEventListener('click', startBarcodeScan);
     document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
   </script>
+
+  <div id="errorLog" style="color: red; font-weight: bold;"></div>
+<script>
+  function logError(message) {
+    const errorLog = document.getElementById('errorLog');
+    errorLog.textContent = message;
+  }
+</script>
+
 </body>
 </html>
