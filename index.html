@@ -177,7 +177,7 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
     status: document.getElementById('editStatus').value,
   });
 
-  const addBookUrl = 'https://script.google.com/macros/s/AKfycbyrjD59Bq9X3UUpJBSneRS5UCcHclMxC3sgKaayiQlfjODWRbymdWhul3mlLp6sSCnZAg/exec?action=addBook&' + params;
+  const addBookUrl = 'https://script.google.com/macros/s/AKfycbxRbd3QCOscs_Fnyl7Q0SOCNwX5HHZ9RvwyIeH3-FIFLwSi-IP-qCpN-est9fBn7qe4ng/exec?action=addBook&' + params;
   try {
     const response = await fetch(addBookUrl);
     const result = await response.json();
