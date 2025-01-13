@@ -122,13 +122,14 @@
     const config = { fps: 10, qrbox: 250 }; // スキャンの設定
     html5QrcodeScanner = new Html5Qrcode("reader");
     html5QrcodeScanner.start(
-      { facingMode: "environment" }, // スマホの背面カメラを使用
-      config,
-      qrCodeSuccessCallback
-	 ).catch(err => {
-    console.error("スキャン開始エラー:", err);
-    alert("カメラの起動に失敗しました。");
-    });
+  { facingMode: "environment" }, // スマホの背面カメラを使用
+  config,
+  qrCodeSuccessCallback
+).catch(err => {
+  console.error("スキャン開始エラー:", err); // 詳細なエラーをコンソールに出力
+  alert("カメラの起動に失敗しました。エラー内容: " + err.message);
+});
+
 	
     document.getElementById('stopScan').style.display = "block";
   }
