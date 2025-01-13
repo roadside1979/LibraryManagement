@@ -116,7 +116,7 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
     status: document.getElementById('editStatus').value,
   });
 
-  const addBookUrl = 'https://script.google.com/macros/s/AKfycbw7zG93qY1QCGCM3ORelXUGln8gaCFvA4YfELM_Dji5LSZDHGAb-IRKX7PUNvRDRilWKA/exec?action=addBook&' + params;
+  const addBookUrl = 'https://script.google.com/macros/s/AKfycbzefs0Z-dnk_trUBQoMtabhqhujLYA-v4jJJywTXyOoMSmQ_JZr-s-3_a3sftao3QRDSg/exec?action=addBook&' + params;
   try {
     const response = await fetch(addBookUrl);
     const result = await response.json();
@@ -125,7 +125,7 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
       alert('本の情報をスプレッドシートに登録しました！');
       document.getElementById('editSection').style.display = 'none'; // フォームを非表示
     } else {
-      alert('スプレッドシートへの登録に失敗しました。');
+      alert(result.message || '登録に失敗しました。');
     }
   } catch (error) {
     console.error('エラー:', error);
