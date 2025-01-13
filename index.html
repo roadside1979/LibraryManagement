@@ -27,15 +27,21 @@
 
   <!-- ISBNスキャンフォーム -->
   <div>
-    <div id="reader" style="width: 300px;"></div>
+    <div id="reader" style="width: 300px; margin-top: 20px;"></div>
     <button id="startScan">バーコードをスキャン</button>
     <button id="stopScan" style="display:none;">スキャン停止</button>
   </div>
 
   <!-- スクリプト -->
   <script>
-    const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキーに置き換え
+    const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
     let html5QrcodeScanner;
+
+    // エラーログ表示用関数
+    function logError(message) {
+      const errorLog = document.getElementById('errorLog');
+      errorLog.textContent = message;
+    }
 
     // ISBN情報をGoogle Books API経由で取得して登録
     async function fetchBookInfo(isbn) {
@@ -76,35 +82,35 @@
         }
       } catch (error) {
         console.error('エラー:', error);
-        alert('情報の取得に失敗しました。');
+        logError('Google Books APIエラー: ' + error.message);
       }
     }
 
     // バーコードスキャンの開始
     function startBarcodeScan() {
-  const qrCodeSuccessCallback = async (decodedText) => {
-    alert(`ISBN: ${decodedText} をスキャンしました！`);
-    await fetchBookInfo(decodedText);
+      const qrCodeSuccessCallback = async (decodedText) => {
+        alert(`ISBN: ${decodedText} をスキャンしました！`);
+        await fetchBookInfo(decodedText);
 
-    html5QrcodeScanner.clear();
-    document.getElementById('stopScan').style.display = "none";
-    document.getElementById('startScan').style.display = "block";
-  };
+        html5QrcodeScanner.clear();
+        document.getElementById('stopScan').style.display = "none";
+        document.getElementById('startScan').style.display = "block";
+      };
 
-  const config = { fps: 10, qrbox: 250 };
-  html5QrcodeScanner = new Html5Qrcode("reader");
-  html5QrcodeScanner.start(
-  { facingMode: "environment" },
-  config,
-  qrCodeSuccessCallback
-).catch(err => {
-  logError("カメラの起動に失敗しました。詳細: " + err.message);
-});
+      const config = { fps: 10, qrbox: 250 };
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        config,
+        qrCodeSuccessCallback
+      ).catch(err => {
+        console.error("スキャン開始エラー:", err);
+        logError("カメラの起動に失敗しました。詳細: " + err.message);
+      });
 
-
-  document.getElementById('startScan').style.display = "none";
-  document.getElementById('stopScan').style.display = "block";
-}
+      document.getElementById('startScan').style.display = "none";
+      document.getElementById('stopScan').style.display = "block";
+    }
 
     // バーコードスキャンの停止
     function stopBarcodeScan() {
@@ -120,13 +126,6 @@
     document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
   </script>
 
-  <div id="errorLog" style="color: red; font-weight: bold;"></div>
-<script>
-  function logError(message) {
-    const errorLog = document.getElementById('errorLog');
-    errorLog.textContent = message;
-  }
-</script>
-
+  <div id="errorLog" style="color: red; font-weight: bold; margin-top: 20px;"></div>
 </body>
 </html>
