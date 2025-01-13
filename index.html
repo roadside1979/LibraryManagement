@@ -116,7 +116,7 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
     status: document.getElementById('editStatus').value,
   });
 
-  const addBookUrl = 'https://script.google.com/macros/s/AKfycbwSU_v_6AIjB3D18ZaLwlShCU4UX37_MFju5KXQgwS1z8w97AI2amBlOzwbIk5Gh0OEMQ/exec?action=addBook&' + params;
+  const addBookUrl = 'https://script.google.com/macros/s/AKfycbxnZBizNJ2utOq9Jg-qwRuUnpzbhHh7SwUeYrpJE9EuYmkM-uD3CvGq3kiTfJnCTypdWwlShCU4UX37_MFju5KXQgwS1z8w97AI2amBlOzwbIk5Gh0OEMQ/exec?action=addBook&' + params;
   try {
     const response = await fetch(addBookUrl);
     const result = await response.json();
