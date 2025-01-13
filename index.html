@@ -207,15 +207,21 @@ document.getElementById('saveEdit').addEventListener('click', async () => {
         document.getElementById('startScan').style.display = "block";
       };
 
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        config,
-        qrCodeSuccessCallback
-      ).catch(err => {
-        console.error("スキャン開始エラー:", err);
-        logError("カメラの起動に失敗しました。詳細: " + err.message);
-      });
+      try {
+  html5QrcodeScanner = new Html5Qrcode("reader");
+  html5QrcodeScanner.start(
+    { facingMode: "environment" }, 
+    config,
+    qrCodeSuccessCallback
+  ).catch(err => {
+    console.error("スキャン開始エラー:", err);
+    alert("カメラの起動に失敗しました: " + err.message);
+  });
+} catch (err) {
+  console.error("スキャン初期化エラー:", err);
+  alert("スキャンの初期化に失敗しました: " + err.message);
+}
+
 
       document.getElementById('startScan').style.display = "none";
       document.getElementById('stopScan').style.display = "block";
