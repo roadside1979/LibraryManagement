@@ -1,100 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>蔵書管理システム</title>
+  <title>カメラ起動テスト</title>
   <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
-  <h1>蔵書管理システム</h1>
-  
-  <!-- 蔵書登録フォーム -->
-  <form id="addBookForm">
-    <input type="text" name="isbn" placeholder="ISBNコード" required><br>
-    <input type="text" name="title" placeholder="タイトル" required><br>
-    <input type="text" name="author" placeholder="著者" required><br>
-    <input type="number" name="year" placeholder="出版年" required><br>
-    <input type="text" name="genre" placeholder="ジャンル" required><br>
-    <select name="location" required>
-      <option value="自宅">自宅</option>
-      <option value="研究室">研究室</option>
-    </select><br>
-    <select name="status" required>
-      <option value="在庫">在庫</option>
-      <option value="貸出中">貸出中</option>
-    </select><br>
-    <button type="submit">登録</button>
-  </form>
+  <h1>カメラ起動テスト</h1>
+  <div id="reader" style="width: 300px; margin-top: 20px;"></div>
+  <button id="startScan">バーコードをスキャン</button>
+  <button id="stopScan" style="display:none;">スキャン停止</button>
+  <div id="errorLog" style="color: red; font-weight: bold; margin-top: 20px;"></div>
 
-  <!-- ISBNスキャンフォーム -->
-  <div>
-    <div id="reader" style="width: 300px; margin-top: 20px;"></div>
-    <button id="startScan">バーコードをスキャン</button>
-    <button id="stopScan" style="display:none;">スキャン停止</button>
-  </div>
-
-  <!-- スクリプト -->
   <script>
-    const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
     let html5QrcodeScanner;
 
-    // エラーログ表示用関数
+    // エラーログを表示
     function logError(message) {
       const errorLog = document.getElementById('errorLog');
       errorLog.textContent = message;
     }
 
-    // ISBN情報をGoogle Books API経由で取得して登録
-    async function fetchBookInfo(isbn) {
-      if (!isbn) {
-        alert('ISBNコードを入力してください。');
-        return;
-      }
-
-      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY}`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.totalItems === 0) {
-          alert('該当する本が見つかりませんでした。');
-          return;
-        }
-
-        const book = data.items[0].volumeInfo;
-        const params = new URLSearchParams({
-          isbn: isbn,
-          title: book.title || '',
-          author: book.authors ? book.authors.join(', ') : '',
-          year: book.publishedDate ? book.publishedDate.split('-')[0] : '',
-          genre: book.categories ? book.categories[0] : '',
-          location: '自宅',
-          status: '在庫'
-        });
-
-        const addBookUrl = 'https://script.google.com/macros/s/AKfycbzefs0Z-dnk_trUBQoMtabhqhujLYA-v4jJJywTXyOoMSmQ_JZr-s-3_a3sftao3QRDSg/exec?action=addBook&' + params;
-        const addBookResponse = await fetch(addBookUrl);
-        const result = await addBookResponse.json();
-
-        if (result.success) {
-          alert('本の情報をスプレッドシートに登録しました！');
-        } else {
-          alert('スプレッドシートへの登録に失敗しました。');
-        }
-      } catch (error) {
-        console.error('エラー:', error);
-        logError('Google Books APIエラー: ' + error.message);
-      }
-    }
-
     // バーコードスキャンの開始
     function startBarcodeScan() {
-      const qrCodeSuccessCallback = async (decodedText) => {
-        alert(`ISBN: ${decodedText} をスキャンしました！`);
-        await fetchBookInfo(decodedText);
-
-        html5QrcodeScanner.clear();
-        document.getElementById('stopScan').style.display = "none";
-        document.getElementById('startScan').style.display = "block";
+      const qrCodeSuccessCallback = (decodedText) => {
+        alert(`スキャン成功: ${decodedText}`);
+        stopBarcodeScan();
       };
 
       const config = { fps: 10, qrbox: 250 };
@@ -104,8 +34,8 @@
         config,
         qrCodeSuccessCallback
       ).catch(err => {
-        console.error("スキャン開始エラー:", err);
-        logError("カメラの起動に失敗しました。詳細: " + err.message);
+        console.error("カメラの起動エラー:", err);
+        logError("カメラを起動できませんでした: " + err.message);
       });
 
       document.getElementById('startScan').style.display = "none";
@@ -121,11 +51,9 @@
       document.getElementById('startScan').style.display = "block";
     }
 
-    // スキャンボタンのイベントリスナー
+    // イベントリスナーを登録
     document.getElementById('startScan').addEventListener('click', startBarcodeScan);
     document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
   </script>
-
-  <div id="errorLog" style="color: red; font-weight: bold; margin-top: 20px;"></div>
 </body>
 </html>
