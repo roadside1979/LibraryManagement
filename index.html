@@ -56,22 +56,15 @@
 <body>
   <h1>蔵書管理システム</h1>
 
-  <!-- 検索フォーム -->
-  <form id="searchForm">
-    <input type="text" id="searchQuery" placeholder="キーワードを入力" required>
-    <button type="submit">検索</button>
-  </form>
-  <div id="searchResults"></div>
-
   <!-- 蔵書登録フォーム -->
   <form id="addBookForm">
     <label for="isbn">ISBNコード:</label>
     <input type="text" id="isbn" name="isbn" placeholder="ISBNコード" required><br>
     <label for="title">タイトル:</label>
     <input type="text" id="title" name="title" placeholder="タイトル" required><br>
-    <input type="text" name="author" placeholder="著者" required><br>
-    <input type="number" name="year" placeholder="出版年" required><br>
-    <input type="text" name="genre" placeholder="ジャンル" required><br>
+    <input type="text" id="author" name="author" placeholder="著者" required><br>
+    <input type="number" id="year" name="year" placeholder="出版年" required><br>
+    <input type="text" id="genre" name="genre" placeholder="ジャンル" required><br>
     <select name="location" required>
       <option value="自宅">自宅</option>
       <option value="研究室">研究室</option>
@@ -91,77 +84,19 @@
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // 検索フォーム
-      document.getElementById('searchForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const query = document.getElementById('searchQuery').value;
-        console.log('検索クエリ:', query);
+    const API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw"; // Google Books APIキー
 
-        try {
-          const searchUrl = `https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=searchBooks&query=${encodeURIComponent(query)}`;
-          const response = await fetch(searchUrl);
-
-          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-
-          const results = await response.json();
-          console.log('検索結果:', results);
-
-          if (results.length === 0) {
-            document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
-          } else {
-            document.getElementById('searchResults').innerHTML = results.map(book =>
-              `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`
-            ).join('');
-          }
-        } catch (error) {
-          console.error('検索エラー:', error);
-          alert('検索エラーが発生しました。');
-        }
-      });
-
-      // 登録フォーム
-      document.getElementById('addBookForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const bookData = Object.fromEntries(formData.entries());
-        console.log('登録フォームデータ:', bookData);
-
-        try {
-          const addBookUrl = `https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=addBook`;
-          const response = await fetch(addBookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(bookData),
-          });
-
-          const result = await response.json();
-          console.log('登録結果:', result);
-
-          if (result.success) {
-            alert('登録が完了しました！');
-          } else {
-            alert(`登録に失敗しました: ${result.message}`);
-          }
-        } catch (error) {
-          console.error('登録エラー:', error);
-          alert('登録エラーが発生しました。');
-        }
-      });
-    });
-
-    // QuaggaJSのスキャン処理
     function startQuagga() {
       Quagga.init({
         inputStream: {
           type: "LiveStream",
-          target: document.querySelector("#barcodeScanner"), // カメラ映像を表示する要素
+          target: document.querySelector("#barcodeScanner"),
           constraints: {
-            facingMode: "environment", // 背面カメラを利用
+            facingMode: "environment",
           },
         },
         decoder: {
-          readers: ["ean_reader"], // EANバーコードを読み取る設定
+          readers: ["ean_reader"],
         },
       }, function (err) {
         if (err) {
@@ -173,12 +108,40 @@
         Quagga.start();
       });
 
-      // バーコードを検出
-      Quagga.onDetected(function (result) {
+      Quagga.onDetected(async function (result) {
         const code = result.codeResult.code;
         console.log("バーコード検出:", code);
-        alert(`検出されたバーコード: ${code}`);
-        Quagga.stop(); // 検出後にスキャンを停止
+
+        // フォームにISBNを入力
+        document.getElementById("isbn").value = code;
+
+        // Google Books APIで書誌情報を取得
+        const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${code}&key=${API_KEY}`;
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.totalItems > 0) {
+            const book = data.items[0].volumeInfo;
+            console.log("取得した書誌情報:", book);
+
+            // フォームに書誌情報を入力
+            document.getElementById("title").value = book.title || "";
+            document.getElementById("author").value = book.authors ? book.authors.join(", ") : "";
+            document.getElementById("year").value = book.publishedDate ? book.publishedDate.split("-")[0] : "";
+            document.getElementById("genre").value = book.categories ? book.categories[0] : "";
+
+            alert("書誌情報を取得しました！");
+          } else {
+            alert("書誌情報が見つかりませんでした。");
+          }
+        } catch (error) {
+          console.error("Google Books APIエラー:", error);
+          alert("書誌情報の取得に失敗しました。");
+        }
+
+        // スキャンを停止
+        Quagga.stop();
       });
     }
 
