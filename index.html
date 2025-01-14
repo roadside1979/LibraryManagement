@@ -71,13 +71,6 @@
 
   <div id="searchResults"></div>
 
-  async function searchBooks() {
-  const query = document.getElementById('searchQuery').value;
-  if (!query) {
-    alert('検索クエリを入力してください。');
-    return;
-  }
-
   const searchUrl = `https://script.google.com/macros/s/AKfycbxRbd3QCOscs_Fnyl7Q0SOCNwX5HHZ9RvwyIeH3-FIFLwSi-IP-qCpN-est9fBn7qe4ng/exec?action=searchBooks&query=${encodeURIComponent(query)}`;
   try {
     const response = await fetch(searchUrl);
