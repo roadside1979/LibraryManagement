@@ -121,7 +121,7 @@
       const query = document.getElementById('searchQuery').value;
 
       try {
-        const searchUrl = `https://script.google.com/macros/s/AKfycbzxSlZOV6r6IstgO4Z12jdNew2fej5TVkQ-ly-Tidq4Sq2iCBlTwub2fnUzA0E07Vv8Kg/exec?action=search&query=${encodeURIComponent(query)}`;
+        const searchUrl = `https://script.google.com/macros/s/AKfycbz37KrHcZyVBlLn-yxV4jVnFKemRMIqbg_d4EyvI6U75XhZ_KfWU-fS0mD-wGVhslGB/exec?action=search&query=${encodeURIComponent(query)}`;
         const response = await fetch(searchUrl);
         const results = await response.json();
 
