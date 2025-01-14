@@ -155,32 +155,53 @@
     });
 
     async function startBarcodeScan() {
-      const config = {
-        fps: 10,
-        qrbox: (viewfinderWidth) => {
-          const minWidth = Math.min(viewfinderWidth, 250);
-          return { width: minWidth, height: minWidth };
-        },
-      };
+  const config = {
+    fps: 10,
+    qrbox: (viewfinderWidth) => {
+      const minWidth = Math.min(viewfinderWidth, 250);
+      return { width: minWidth, height: minWidth };
+    },
+  };
 
-      const qrCodeSuccessCallback = async (decodedText) => {
-        alert(`スキャンしたISBN: ${decodedText}`);
-        html5QrcodeScanner.clear();
-        document.getElementById('stopScan').style.display = 'none';
-        document.getElementById('startScan').style.display = 'block';
-      };
+  const qrCodeSuccessCallback = async (decodedText) => {
+    alert(`スキャン成功: ISBN ${decodedText}`);
+    await fetchBookInfo(decodedText); // ISBNを用いて書誌情報を取得
+    html5QrcodeScanner.clear();
+    document.getElementById("stopScan").style.display = "none";
+    document.getElementById("startScan").style.display = "block";
+  };
 
-      html5QrcodeScanner = new Html5Qrcode('reader');
-      await html5QrcodeScanner.start({ facingMode: 'environment' }, config, qrCodeSuccessCallback);
-      document.getElementById('startScan').style.display = 'none';
-      document.getElementById('stopScan').style.display = 'block';
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("カメラが利用できません。デバイスを確認してください。");
+      return;
     }
 
-    async function stopBarcodeScan() {
-      if (html5QrcodeScanner) await html5QrcodeScanner.clear();
-      document.getElementById('stopScan').style.display = 'none';
-      document.getElementById('startScan').style.display = 'block';
-    }
+    html5QrcodeScanner = new Html5Qrcode("reader");
+    await html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      qrCodeSuccessCallback
+    );
+
+    document.getElementById("startScan").style.display = "none";
+    document.getElementById("stopScan").style.display = "block";
+  } catch (err) {
+    console.error("スキャン開始エラー:", err);
+    alert("カメラの起動に失敗しました: " + err.message);
+  }
+}
+
+async function stopBarcodeScan() {
+  try {
+    if (html5QrcodeScanner) await html5QrcodeScanner.clear();
+  } catch (err) {
+    console.error("スキャン停止エラー:", err);
+  }
+  document.getElementById("stopScan").style.display = "none";
+  document.getElementById("startScan").style.display = "block";
+}
+
   </script>
 </body>
 </html>
