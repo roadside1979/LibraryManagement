@@ -155,6 +155,16 @@
     });
 
     async function startBarcodeScan() {
+  // デバッグ用コードを追加
+  console.log("html5-qrcodeライブラリの読み込みを確認します...");
+  if (typeof Html5Qrcode === "function") {
+    console.log("html5-qrcodeライブラリは正しく読み込まれています。");
+  } else {
+    console.error("html5-qrcodeライブラリが読み込まれていません。ライブラリのURLを確認してください。");
+    alert("html5-qrcodeライブラリが読み込まれていません。");
+    return; // ライブラリがない場合は処理を終了
+  }
+
   const config = {
     fps: 10,
     qrbox: (viewfinderWidth) => {
@@ -177,12 +187,14 @@
       return;
     }
 
+    console.log("カメラ起動開始");
     html5QrcodeScanner = new Html5Qrcode("reader");
     await html5QrcodeScanner.start(
       { facingMode: "environment" },
       config,
       qrCodeSuccessCallback
     );
+    console.log("カメラ起動成功");
 
     document.getElementById("startScan").style.display = "none";
     document.getElementById("stopScan").style.display = "block";
@@ -191,6 +203,7 @@
     alert("カメラの起動に失敗しました: " + err.message);
   }
 }
+
 
 async function stopBarcodeScan() {
   try {
@@ -201,14 +214,6 @@ async function stopBarcodeScan() {
   document.getElementById("stopScan").style.display = "none";
   document.getElementById("startScan").style.display = "block";
 }
-
-console.log("html5-qrcodeライブラリの読み込みを確認します...");
-if (typeof Html5Qrcode === "function") {
-  console.log("html5-qrcodeライブラリは正しく読み込まれています。");
-} else {
-  console.error("html5-qrcodeライブラリが読み込まれていません。ライブラリのURLを確認してください。");
-}
-
 
   </script>
 </body>
