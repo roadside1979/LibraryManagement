@@ -127,43 +127,44 @@
   
   <!-- スクリプト -->
   <script>
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   // スキャン開始と停止のボタン設定
   document.getElementById('startScan').addEventListener('click', startBarcodeScan);
   document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
 
   // 検索フォームのイベントリスナーを追加
-  document.getElementById('searchForm').addEventListener('submit', async (e) => {
+  document.getElementById('searchForm').addEventListener('submit', (e) => {
     e.preventDefault(); // フォームのデフォルト送信を防ぐ
 
-    const query = document.getElementById('searchQuery').value; // クエリを取得
-
-    try {
-      const searchUrl = `https://script.google.com/macros/s/...&query=${encodeURIComponent(query)}`;
-      const response = await fetch(searchUrl); // 非同期リクエストを送信
-      const results = await response.json(); // レスポンスをJSON形式で取得
-
-      if (results.length === 0) {
-        // 結果がない場合の処理
-        document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
-      } else {
-        // 結果を表示
-        const resultHtml = results.map(book => {
-          return `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`;
-        }).join('');
-        document.getElementById('searchResults').innerHTML = resultHtml;
-      }
-    } catch (error) {
-      // エラー発生時の処理
-      console.error('エラー:', error);
-      alert('検索に失敗しました。');
-    }
+    handleSearch(); // 非同期関数を呼び出す
   });
 });
 
+// 検索処理を非同期関数として定義
+async function handleSearch() {
+  const query = document.getElementById('searchQuery').value; // クエリを取得
 
-const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
-let html5QrcodeScanner;
+  try {
+    const searchUrl = `https://script.google.com/macros/s/...&query=${encodeURIComponent(query)}`;
+    const response = await fetch(searchUrl); // 非同期リクエストを送信
+    const results = await response.json(); // レスポンスをJSON形式で取得
+
+    if (results.length === 0) {
+      // 結果がない場合の処理
+      document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
+    } else {
+      // 結果を表示
+      const resultHtml = results.map(book => {
+        return `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`;
+      }).join('');
+      document.getElementById('searchResults').innerHTML = resultHtml;
+    }
+  } catch (error) {
+    // エラー発生時の処理
+    console.error('エラー:', error);
+    alert('検索に失敗しました。');
+  }
+}
 
 // ISBN情報をGoogle Books API経由で取得して登録
 async function fetchBookInfo(isbn) {
@@ -236,7 +237,6 @@ function startBarcodeScan() {
   document.getElementById('stopScan').style.display = "block";
 }
 
-
 // バーコードスキャンの停止
 function stopBarcodeScan() {
   if (html5QrcodeScanner) {
@@ -245,8 +245,10 @@ function stopBarcodeScan() {
   document.getElementById('stopScan').style.display = "none";
   document.getElementById('startScan').style.display = "block";
 }
-</script>
 
+const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
+let html5QrcodeScanner;
+</script>
 
   <div id="errorLog" style="color: red; font-weight: bold; margin-top: 20px;"></div>
 
