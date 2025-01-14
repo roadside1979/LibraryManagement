@@ -134,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const query = document.getElementById('searchQuery').value;
 
     try {
+      const query = document.getElementById('searchQuery').value;
       const searchUrl = `https://script.google.com/macros/s/...&query=${encodeURIComponent(query)}`;
       const response = await fetch(searchUrl);
       const results = await response.json();
