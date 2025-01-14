@@ -120,7 +120,7 @@
   const bookData = Object.fromEntries(formData.entries()); // データをオブジェクトに変換
 
   // デプロイ済みURLを設定
-  const addBookUrl = 'https://script.google.com/macros/s/AKfycbwm8GMeA7UvJ8Wok3CSD4SjVwVi4-y78DpFmsxdz01lxP-eVcdLvXIul28lBTfCjSJgNw/exec?action=addBook';
+  const addBookUrl = 'https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=addBook';
 
   try {
     // リクエスト送信
@@ -151,7 +151,7 @@
   const query = document.getElementById('searchQuery').value;
 
   try {
-    const searchUrl = `https://script.google.com/macros/s/AKfycbwm8GMeA7UvJ8Wok3CSD4SjVwVi4-y78DpFmsxdz01lxP-eVcdLvXIul28lBTfCjSJgNw/exec?action=search&query=${encodeURIComponent(query)}`;
+    const searchUrl = `https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=search&query=${encodeURIComponent(query)}`;
     const response = await fetch(searchUrl);
     
     if (!response.ok) {
