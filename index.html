@@ -119,8 +119,10 @@
   const formData = new FormData(event.target); // フォームデータを取得
   const bookData = Object.fromEntries(formData.entries()); // データをオブジェクトに変換
 
+  console.log('登録フォームデータ:', bookData); // データをログに出力
+
   // デプロイ済みURLを設定
-  const addBookUrl = 'https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=addBook';
+  const addBookUrl = 'https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=addBook';
 
   try {
     // リクエスト送信
@@ -131,6 +133,7 @@
     });
 
     const result = await response.json();
+    console.log('登録結果:', result); // 結果をログに出力
 
     if (result.success) {
       alert('登録が完了しました！');
@@ -143,22 +146,27 @@
   }
 });
 
+
   const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
   let html5QrcodeScanner;
 
   // 検索処理
   async function handleSearch() {
   const query = document.getElementById('searchQuery').value;
+  console.log('検索クエリ:', query); // クエリをログに出力
 
   try {
-    const searchUrl = `https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=search&query=${encodeURIComponent(query)}`;
+    const searchUrl = `https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=searchBooks&query=${encodeURIComponent(query)}`;
+    console.log('検索URL:', searchUrl); // URLをログに出力
+
     const response = await fetch(searchUrl);
-    
+
     if (!response.ok) {
       throw new Error(`HTTPエラー: ${response.status}`);
     }
 
     const results = await response.json();
+    console.log('検索結果:', results); // 結果をログに出力
 
     if (results.length === 0) {
       document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
