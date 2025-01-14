@@ -129,14 +129,17 @@
   <script>
 document.addEventListener("DOMContentLoaded", () => {
   // スキャン開始と停止のボタン設定
-  document.getElementById('startScan').addEventListener('click', startBarcodeScan);
-  document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
+  document.getElementById('startScan').addEventListener('click', () => {
+    startBarcodeScan(); // 非同期関数の呼び出し
+  });
+  document.getElementById('stopScan').addEventListener('click', () => {
+    stopBarcodeScan(); // 非同期関数の呼び出し
+  });
 
   // 検索フォームのイベントリスナーを追加
   document.getElementById('searchForm').addEventListener('submit', (e) => {
     e.preventDefault(); // フォームのデフォルト送信を防ぐ
-
-    handleSearch(); // 非同期関数を呼び出す
+    handleSearch(); // 非同期関数の呼び出し
   });
 });
 
@@ -203,7 +206,7 @@ async function fetchBookInfo(isbn) {
 }
 
 // バーコードスキャンの開始
-function startBarcodeScan() {
+async function startBarcodeScan() {
   const config = {
     fps: 10,
     qrbox: (viewfinderWidth) => {
@@ -238,9 +241,9 @@ function startBarcodeScan() {
 }
 
 // バーコードスキャンの停止
-function stopBarcodeScan() {
+async function stopBarcodeScan() {
   if (html5QrcodeScanner) {
-    html5QrcodeScanner.clear();
+    await html5QrcodeScanner.clear();
   }
   document.getElementById('stopScan').style.display = "none";
   document.getElementById('startScan').style.display = "block";
