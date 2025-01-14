@@ -135,28 +135,32 @@ document.addEventListener("DOMContentLoaded", () => {
   // 検索フォームのイベントリスナーを追加
   document.getElementById('searchForm').addEventListener('submit', async (e) => {
     e.preventDefault(); // フォームのデフォルト送信を防ぐ
-    const query = document.getElementById('searchQuery').value;
+
+    const query = document.getElementById('searchQuery').value; // クエリを取得
 
     try {
-      const query = document.getElementById('searchQuery').value;
       const searchUrl = `https://script.google.com/macros/s/...&query=${encodeURIComponent(query)}`;
-      const response = await fetch(searchUrl);
-      const results = await response.json();
+      const response = await fetch(searchUrl); // 非同期リクエストを送信
+      const results = await response.json(); // レスポンスをJSON形式で取得
 
       if (results.length === 0) {
+        // 結果がない場合の処理
         document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
       } else {
+        // 結果を表示
         const resultHtml = results.map(book => {
           return `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`;
         }).join('');
         document.getElementById('searchResults').innerHTML = resultHtml;
       }
     } catch (error) {
+      // エラー発生時の処理
       console.error('エラー:', error);
       alert('検索に失敗しました。');
     }
   });
 });
+
 
 const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
 let html5QrcodeScanner;
