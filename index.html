@@ -114,31 +114,34 @@
 
     // 登録フォームのイベントリスナーを設定
     document.getElementById('addBookForm').addEventListener('submit', async function(event) {
-      event.preventDefault();
+  event.preventDefault(); // フォーム送信をキャンセル
 
-      const formData = new FormData(event.target);
-      const bookData = Object.fromEntries(formData.entries());
-      const addBookUrl = 'https://script.google.com/macros/s/AKfycbwHu3JPyU8-JnK80EQtJBZM1EAVXdO6PupczHUVNynrcrmeHll_kLKi9-xquId9UQIb8g/exec?action=addBook';
+  const formData = new FormData(event.target); // フォームデータを取得
+  const bookData = Object.fromEntries(formData.entries()); // データをオブジェクトに変換
 
-      try {
-        const response = await fetch(addBookUrl, {
-          method: 'POST',
-          body: new URLSearchParams(bookData)
-        });
+  // デプロイ済みURLを設定
+  const addBookUrl = 'https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=addBook';
 
-        const result = await response.json();
-
-        if (result.success) {
-          alert('登録が完了しました！');
-        } else {
-          alert(`登録に失敗しました: ${result.message}`);
-        }
-      } catch (error) {
-        console.error('登録エラー:', error);
-        alert('登録に失敗しました。');
-      }
+  try {
+    // リクエスト送信
+    const response = await fetch(addBookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(bookData)
     });
-  });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert('登録が完了しました！');
+    } else {
+      alert(`登録に失敗しました: ${result.message}`);
+    }
+  } catch (error) {
+    console.error('登録エラー:', error);
+    alert('登録に失敗しました。');
+  }
+});
 
   const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
   let html5QrcodeScanner;
