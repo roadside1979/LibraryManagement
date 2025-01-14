@@ -167,11 +167,11 @@
 
   const config = {
     fps: 10,
-    qrbox: (viewfinderWidth) => {
-      const minWidth = Math.min(viewfinderWidth, 250);
-      return { width: minWidth, height: minWidth };
-    },
-  };
+    const config = {
+  fps: 10,
+  qrbox: 250, // スキャンエリアを 250x250 に固定
+};
+
 
   const qrCodeSuccessCallback = async (decodedText) => {
     alert(`スキャン成功: ISBN ${decodedText}`);
