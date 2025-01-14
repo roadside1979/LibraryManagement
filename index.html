@@ -12,13 +12,11 @@
       padding: 0;
       background-color: #f9f9f9;
     }
-
     h1 {
       text-align: center;
       font-size: 1.5em;
       margin-top: 10px;
     }
-
     form, #editSection, #reader {
       max-width: 90%;
       margin: 20px auto;
@@ -27,7 +25,6 @@
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-
     input, select, button {
       width: 100%;
       padding: 10px;
@@ -36,23 +33,19 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
     button {
       background-color: #007BFF;
       color: white;
       border: none;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
     #reader {
       width: 100%;
       height: auto;
     }
-
     @media (min-width: 768px) {
       form, #editSection, #reader {
         max-width: 50%;
@@ -74,10 +67,8 @@
   <form id="addBookForm">
     <label for="isbn">ISBNコード:</label>
     <input type="text" id="isbn" name="isbn" placeholder="ISBNコード" required><br>
-
     <label for="title">タイトル:</label>
     <input type="text" id="title" name="title" placeholder="タイトル" required><br>
-
     <input type="text" name="author" placeholder="著者" required><br>
     <input type="number" name="year" placeholder="出版年" required><br>
     <input type="text" name="genre" placeholder="ジャンル" required><br>
@@ -99,172 +90,97 @@
     <button id="stopScan" style="display:none;">スキャン停止</button>
   </div>
 
-  <!-- スクリプト -->
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // スキャン開始と停止のボタン設定
-    document.getElementById('startScan').addEventListener('click', startBarcodeScan);
-    document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
+    document.addEventListener("DOMContentLoaded", () => {
+      // スキャンボタンの設定
+      document.getElementById('startScan').addEventListener('click', startBarcodeScan);
+      document.getElementById('stopScan').addEventListener('click', stopBarcodeScan);
 
-    // 検索フォームのイベントリスナーを設定
-    document.getElementById('searchForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      handleSearch();
+      // 検索フォーム
+      document.getElementById('searchForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = document.getElementById('searchQuery').value;
+        console.log('検索クエリ:', query);
+
+        try {
+          const searchUrl = `https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=searchBooks&query=${encodeURIComponent(query)}`;
+          const response = await fetch(searchUrl);
+
+          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+
+          const results = await response.json();
+          console.log('検索結果:', results);
+
+          if (results.length === 0) {
+            document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
+          } else {
+            document.getElementById('searchResults').innerHTML = results.map(book =>
+              `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`
+            ).join('');
+          }
+        } catch (error) {
+          console.error('検索エラー:', error);
+          alert('検索エラーが発生しました。');
+        }
+      });
+
+      // 登録フォーム
+      document.getElementById('addBookForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const bookData = Object.fromEntries(formData.entries());
+        console.log('登録フォームデータ:', bookData);
+
+        try {
+          const addBookUrl = `https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=addBook`;
+          const response = await fetch(addBookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(bookData),
+          });
+
+          const result = await response.json();
+          console.log('登録結果:', result);
+
+          if (result.success) {
+            alert('登録が完了しました！');
+          } else {
+            alert(`登録に失敗しました: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('登録エラー:', error);
+          alert('登録エラーが発生しました。');
+        }
+      });
     });
 
-    // 登録フォームのイベントリスナーを設定
-    document.getElementById('addBookForm').addEventListener('submit', async function(event) {
-  event.preventDefault(); // フォーム送信をキャンセル
+    async function startBarcodeScan() {
+      const config = {
+        fps: 10,
+        qrbox: (viewfinderWidth) => {
+          const minWidth = Math.min(viewfinderWidth, 250);
+          return { width: minWidth, height: minWidth };
+        },
+      };
 
-  const formData = new FormData(event.target); // フォームデータを取得
-  const bookData = Object.fromEntries(formData.entries()); // データをオブジェクトに変換
+      const qrCodeSuccessCallback = async (decodedText) => {
+        alert(`スキャンしたISBN: ${decodedText}`);
+        html5QrcodeScanner.clear();
+        document.getElementById('stopScan').style.display = 'none';
+        document.getElementById('startScan').style.display = 'block';
+      };
 
-  console.log('登録フォームデータ:', bookData); // データをログに出力
-
-  // デプロイ済みURLを設定
-  const addBookUrl = 'https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=addBook';
-
-  try {
-    // リクエスト送信
-    const response = await fetch(addBookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(bookData)
-    });
-
-    const result = await response.json();
-    console.log('登録結果:', result); // 結果をログに出力
-
-    if (result.success) {
-      alert('登録が完了しました！');
-    } else {
-      alert(`登録に失敗しました: ${result.message}`);
-    }
-  } catch (error) {
-    console.error('登録エラー:', error);
-    alert('登録に失敗しました。');
-  }
-});
-
-
-  const API_KEY = 'AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw'; // GCPで取得したAPIキー
-  let html5QrcodeScanner;
-
-  // 検索処理
-  async function handleSearch() {
-  const query = document.getElementById('searchQuery').value;
-  try {
-    const searchUrl = `https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=searchBooks&query=${encodeURIComponent(query)}`;
-    const response = await fetch(searchUrl);
-
-    if (!response.ok) {
-      throw new Error(`HTTPエラー: ${response.status}`);
+      html5QrcodeScanner = new Html5Qrcode('reader');
+      await html5QrcodeScanner.start({ facingMode: 'environment' }, config, qrCodeSuccessCallback);
+      document.getElementById('startScan').style.display = 'none';
+      document.getElementById('stopScan').style.display = 'block';
     }
 
-    const results = await response.json();
-
-    if (results.length === 0) {
-      document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
-    } else {
-      const resultHtml = results.map(book => {
-        return `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`;
-      }).join('');
-      document.getElementById('searchResults').innerHTML = resultHtml;
+    async function stopBarcodeScan() {
+      if (html5QrcodeScanner) await html5QrcodeScanner.clear();
+      document.getElementById('stopScan').style.display = 'none';
+      document.getElementById('startScan').style.display = 'block';
     }
-  } catch (error) {
-    console.error('検索エラー:', error);
-    alert('検索中にエラーが発生しました。');
-  }
-}
-
-  // ISBN情報をGoogle Books API経由で取得して登録
-  async function fetchBookInfo(isbn) {
-    if (!isbn) {
-      alert('ISBNコードを入力してください。');
-      return;
-    }
-
-    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${API_KEY}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.totalItems === 0) {
-        alert('該当する本が見つかりませんでした。');
-        return;
-      }
-
-      const book = data.items[0].volumeInfo;
-
-      document.getElementById('editIsbn').value = isbn;
-      document.getElementById('editTitle').value = book.title || '';
-      document.getElementById('editAuthor').value = book.authors ? book.authors.join(', ') : '';
-      document.getElementById('editYear').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
-      document.getElementById('editGenre').value = book.categories ? book.categories[0] : '';
-      document.getElementById('editLocation').value = '自宅';
-      document.getElementById('editStatus').value = '在庫';
-
-      document.getElementById('editSection').style.display = 'block';
-    } catch (error) {
-      console.error('エラー:', error);
-      alert('情報の取得に失敗しました。');
-    }
-  }
-
-  // バーコードスキャン開始
-  async function startBarcodeScan() {
-    const config = {
-      fps: 10,
-      qrbox: (viewfinderWidth) => {
-        const minWidth = Math.min(viewfinderWidth, 250);
-        return { width: minWidth, height: minWidth };
-      }
-    };
-
-    const qrCodeSuccessCallback = async (decodedText) => {
-      alert(`ISBN: ${decodedText} をスキャンしました！`);
-      await fetchBookInfo(decodedText);
-
-      html5QrcodeScanner.clear();
-      document.getElementById('stopScan').style.display = "none";
-      document.getElementById('startScan').style.display = "block";
-    };
-
-    try {
-      // カメラのアクセス権を確認
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("カメラが利用できません。デバイスを確認してください。");
-        return;
-      }
-
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      await html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        config,
-        qrCodeSuccessCallback
-      );
-    } catch (err) {
-      console.error("スキャン開始エラー:", err.name, err.message, err.stack);
-      alert("スキャンに失敗しました: " + err.message);
-    }
-
-    document.getElementById('startScan').style.display = "none";
-    document.getElementById('stopScan').style.display = "block";
-  }
-
-  async function stopBarcodeScan() {
-    try {
-      if (html5QrcodeScanner) {
-        await html5QrcodeScanner.clear();
-      }
-    } catch (err) {
-      console.error("スキャン停止エラー:", err);
-      alert("スキャン停止に失敗しました: " + err.message);
-    }
-    document.getElementById('stopScan').style.display = "none";
-    document.getElementById('startScan').style.display = "block";
-  }
-</script>
-
+  </script>
 </body>
 </html>
