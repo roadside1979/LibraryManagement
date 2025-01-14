@@ -148,26 +148,32 @@
 
   // 検索処理
   async function handleSearch() {
-    const query = document.getElementById('searchQuery').value;
+  const query = document.getElementById('searchQuery').value;
 
-    try {
-      const searchUrl = `https://script.google.com/macros/s/AKfycbwzAY2g4DtVKMe8S6IHeIbjJqQIJ8kCZ_Ch-ICy0cQ92qWGJX_PmzCA5um3Z-kXpEUoWw/exec?action=search&query=${encodeURIComponent(query)}`;
-      const response = await fetch(searchUrl);
-      const results = await response.json();
-
-      if (results.length === 0) {
-        document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
-      } else {
-        const resultHtml = results.map(book => {
-          return `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`;
-        }).join('');
-        document.getElementById('searchResults').innerHTML = resultHtml;
-      }
-    } catch (error) {
-      console.error('検索エラー:', error);
-      alert('検索に失敗しました。');
+  try {
+    const searchUrl = `https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=search&query=${encodeURIComponent(query)}`;
+    const response = await fetch(searchUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTPエラー: ${response.status}`);
     }
+
+    const results = await response.json();
+
+    if (results.length === 0) {
+      document.getElementById('searchResults').innerHTML = '<p>該当する結果が見つかりませんでした。</p>';
+    } else {
+      const resultHtml = results.map(book => {
+        return `<p>ISBN: ${book.ISBN}, タイトル: ${book.タイトル}, 著者: ${book.著者}</p>`;
+      }).join('');
+      document.getElementById('searchResults').innerHTML = resultHtml;
+    }
+  } catch (error) {
+    console.error('検索エラー:', error);
+    alert('検索中にエラーが発生しました。');
   }
+}
+
 
   // ISBN情報をGoogle Books API経由で取得して登録
   async function fetchBookInfo(isbn) {
