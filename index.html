@@ -202,6 +202,14 @@ async function stopBarcodeScan() {
   document.getElementById("startScan").style.display = "block";
 }
 
+console.log("html5-qrcodeライブラリの読み込みを確認します...");
+if (typeof Html5Qrcode === "function") {
+  console.log("html5-qrcodeライブラリは正しく読み込まれています。");
+} else {
+  console.error("html5-qrcodeライブラリが読み込まれていません。ライブラリのURLを確認してください。");
+}
+
+
   </script>
 </body>
 </html>
