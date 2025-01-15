@@ -178,6 +178,10 @@
         } else {
           alert(`登録に失敗しました: ${result.message}`);
         }
+      } catch (error) {
+        console.error("登録エラー:", error);
+        alert("登録中にエラーが発生しました。");
+      }
     });
   </script>
 </body>
