@@ -156,8 +156,8 @@
       const formData = new FormData(e.target);
       const bookData = Object.fromEntries(formData.entries());
 
-      if (!bookData.isbn.trim()) {
-        alert("ISBNコードを入力してください。");
+      if (!bookData.title.trim()) {
+        alert("タイトルを入力してください。");
         return;
       }
 
