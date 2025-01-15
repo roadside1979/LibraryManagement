@@ -78,10 +78,10 @@
 
   <!-- ISBNスキャンフォーム -->
   <div>
-    <div id="barcodeScanner"></div>
-    <button onclick="startQuagga()">バーコードスキャン開始</button>
-    <button onclick="stopQuagga()">スキャン停止</button>
-  </div>
+  <div id="barcodeScanner"></div>
+  <button id="startScan">バーコードスキャン開始</button>
+  <button id="stopScan">スキャン停止</button>
+</div>
 
   <script>
     const GOOGLE_BOOKS_API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw"; // Google Books APIキーを入力
@@ -117,7 +117,7 @@
           inputStream: {
             name: "Live",
             type: "LiveStream",
-            target: document.querySelector("#reader"),
+            target: document.querySelector("#barcodeScanner"),
             constraints: { facingMode: "environment" },
           },
           decoder: { readers: ["ean_reader"] },
@@ -125,6 +125,7 @@
         function (err) {
           if (err) {
             console.error("QuaggaJS初期化エラー:", err);
+            alert("カメラの初期化に失敗しました。");
             scannerActive = false;
             return;
           }
@@ -141,26 +142,22 @@
     }
 
     document.getElementById("startScan").addEventListener("click", startQuagga);
-    document.getElementById("stopScan").addEventListener("click", () => {
-      Quagga.stop();
-      scannerActive = false;
-    });
+    document.getElementById("stopScan").addEventListener("click", stopQuagga);
 
-    // 登録ボタン処理
     document.getElementById("addBookForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const bookData = Object.fromEntries(formData.entries());
 
-      // 空欄のデータを許容
-      if (!Object.values(bookData).some((field) => field.trim())) {
-        alert("少なくとも1つのフィールドを入力してください。");
+      if (!bookData.title.trim() && !bookData.author.trim()) {
+        alert("タイトルまたは著者のいずれかを入力してください。");
         return;
       }
 
+
       try {
         const response = await fetch(
-          "https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=addBook",
+          "https://script.google.com/macros/s/AKfycbz4Ov0ul2o58_UuRrdF6-EhDWBxkMDl1OEMM6Zl_RvuD-w_VPA3lOFG9OnGpMs653-N8w/exec?action=addBook",
           {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -178,9 +175,6 @@
         alert("登録エラーが発生しました。");
       }
     });
-
-    function stopQuagga() {
-      Quagga.stop();
     }
   </script>
 </body>
