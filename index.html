@@ -84,66 +84,100 @@
   </div>
 
   <script>
-    const API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw"; // Google Books APIキー
+    const GOOGLE_BOOKS_API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw"; // Google Books APIキーを入力
+    let scannerActive = false;
 
-    function startQuagga() {
-      Quagga.init({
-        inputStream: {
-          type: "LiveStream",
-          target: document.querySelector("#barcodeScanner"),
-          constraints: {
-            facingMode: "environment",
+    // Google Books APIでISBNから書誌情報を取得
+    async function fetchBookInfo(isbn) {
+      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.totalItems > 0) {
+          const book = data.items[0].volumeInfo;
+          document.getElementById('isbn').value = isbn;
+          document.getElementById('title').value = book.title || '';
+          document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
+          document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
+          document.getElementById('genre').value = book.categories ? book.categories[0] : '';
+        } else {
+          console.warn("書誌情報が見つかりませんでした");
+        }
+      } catch (error) {
+        console.error("Google Books APIエラー:", error);
+      }
+    }
+
+        // QuaggaJSを使ったバーコードスキャン
+    async function startQuagga() {
+      if (scannerActive) return;
+      scannerActive = true;
+      Quagga.init(
+        {
+          inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector("#reader"),
+            constraints: { facingMode: "environment" },
           },
+          decoder: { readers: ["ean_reader"] },
         },
-        decoder: {
-          readers: ["ean_reader"],
-        },
-      }, function (err) {
-        if (err) {
-          console.error("QuaggaJS初期化エラー:", err);
-          alert("バーコードスキャナの初期化に失敗しました。");
-          return;
-        }
-        console.log("QuaggaJS初期化成功");
-        Quagga.start();
-      });
-
-      Quagga.onDetected(async function (result) {
-        const code = result.codeResult.code;
-        console.log("バーコード検出:", code);
-
-        // フォームにISBNを入力
-        document.getElementById("isbn").value = code;
-
-        // Google Books APIで書誌情報を取得
-        const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${code}&key=${API_KEY}`;
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-
-          if (data.totalItems > 0) {
-            const book = data.items[0].volumeInfo;
-            console.log("取得した書誌情報:", book);
-
-            // フォームに書誌情報を入力
-            document.getElementById("title").value = book.title || "";
-            document.getElementById("author").value = book.authors ? book.authors.join(", ") : "";
-            document.getElementById("year").value = book.publishedDate ? book.publishedDate.split("-")[0] : "";
-            document.getElementById("genre").value = book.categories ? book.categories[0] : "";
-
-            alert("書誌情報を取得しました！");
-          } else {
-            alert("書誌情報が見つかりませんでした。");
+        function (err) {
+          if (err) {
+            console.error("QuaggaJS初期化エラー:", err);
+            scannerActive = false;
+            return;
           }
-        } catch (error) {
-          console.error("Google Books APIエラー:", error);
-          alert("書誌情報の取得に失敗しました。");
+          Quagga.start();
         }
+      );
 
-        // スキャンを停止
+      Quagga.onDetected(async (data) => {
+        const isbn = data.codeResult.code;
         Quagga.stop();
+        scannerActive = false;
+        await fetchBookInfo(isbn);
       });
     }
+
+    document.getElementById("startScan").addEventListener("click", startQuagga);
+    document.getElementById("stopScan").addEventListener("click", () => {
+      Quagga.stop();
+      scannerActive = false;
+    });
+
+    // 登録ボタン処理
+    document.getElementById("addBookForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const bookData = Object.fromEntries(formData.entries());
+
+      // 空欄のデータを許容
+      if (!Object.values(bookData).some((field) => field.trim())) {
+        alert("少なくとも1つのフィールドを入力してください。");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec?action=addBook",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(bookData),
+          }
+        );
+        const result = await response.json();
+        if (result.success) {
+          alert("登録が完了しました！");
+        } else {
+          alert(`登録に失敗しました: ${result.message}`);
+        }
+      } catch (error) {
+        console.error("登録エラー:", error);
+        alert("登録エラーが発生しました。");
+      }
+    });
 
     function stopQuagga() {
       Quagga.stop();
