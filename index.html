@@ -61,15 +61,15 @@
     <label for="isbn">ISBNコード:</label>
     <input type="text" id="isbn" name="isbn" placeholder="ISBNコード" required><br>
     <label for="title">タイトル:</label>
-    <input type="text" id="title" name="title" placeholder="タイトル" required><br>
-    <input type="text" id="author" name="author" placeholder="著者" required><br>
-    <input type="number" id="year" name="year" placeholder="出版年" required><br>
-    <input type="text" id="genre" name="genre" placeholder="ジャンル" required><br>
-    <select name="location" required>
+    <input type="text" id="title" name="title" placeholder="タイトル"><br>
+    <input type="text" id="author" name="author" placeholder="著者"><br>
+    <input type="number" id="year" name="year" placeholder="出版年"><br>
+    <input type="text" id="genre" name="genre" placeholder="ジャンル"><br>
+    <select name="location">
       <option value="自宅">自宅</option>
       <option value="研究室">研究室</option>
     </select><br>
-    <select name="status" required>
+    <select name="status">
       <option value="在庫">在庫</option>
       <option value="貸出中">貸出中</option>
     </select><br>
@@ -78,46 +78,37 @@
 
   <!-- ISBNスキャンフォーム -->
   <div>
-  <div id="barcodeScanner"></div>
-  <button id="startScan">バーコードスキャン開始</button>
-  <button id="stopScan">スキャン停止</button>
-</div>
+    <div id="barcodeScanner"></div>
+    <button id="startScan">バーコードスキャン開始</button>
+    <button id="stopScan">スキャン停止</button>
+  </div>
 
   <script>
-    const GOOGLE_BOOKS_API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw"; // Google Books APIキーを入力
+    const GOOGLE_BOOKS_API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw";
     let scannerActive = false;
 
-    // Google Books APIでISBNから書誌情報を取得
     async function fetchBookInfo(isbn) {
-  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
+      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-    if (data.totalItems > 0) {
-      const book = data.items[0].volumeInfo;
-
-      // フォームに書誌情報を入力
-      document.getElementById('isbn').value = isbn;
-      document.getElementById('title').value = book.title || '';
-      document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
-      document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
-      document.getElementById('genre').value = book.categories ? book.categories[0] : '';
-    } else {
-      // 書誌情報が見つからなかった場合の処理
-      alert("書誌情報が見つかりませんでした。手動で入力してください。");
-      document.getElementById('isbn').value = isbn;
-      document.getElementById('title').value = '';
-      document.getElementById('author').value = '';
-      document.getElementById('year').value = '';
-      document.getElementById('genre').value = '';
+        if (data.totalItems > 0) {
+          const book = data.items[0].volumeInfo;
+          document.getElementById('isbn').value = isbn;
+          document.getElementById('title').value = book.title || '';
+          document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
+          document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
+          document.getElementById('genre').value = book.categories ? book.categories[0] : '';
+        } else {
+          alert("書誌情報が見つかりませんでした。手動で入力してください。");
+        }
+      } catch (error) {
+        console.error("Google Books APIエラー:", error);
+        alert("書誌情報の取得中にエラーが発生しました。");
+      }
     }
-  } catch (error) {
-    console.error("Google Books APIエラー:", error);
-    alert("書誌情報の取得中にエラーが発生しました。");
-  }
-}
-        // QuaggaJSを使ったバーコードスキャン
+
     async function startQuagga() {
       if (scannerActive) return;
       scannerActive = true;
@@ -127,9 +118,7 @@
             name: "Live",
             type: "LiveStream",
             target: document.querySelector("#barcodeScanner"),
-            constraints: { facingMode: { ideal: "environment" } },
-            width: { min: 640 }, // 必要であれば幅を指定
-            height: { min: 480 } // 必要であれば高さを指定
+            constraints: { facingMode: { ideal: "environment" } }
           },
           decoder: { readers: ["ean_reader"] },
         },
@@ -153,12 +142,12 @@
     }
 
     function stopQuagga() {
-      Quagga.stop();
-      scannerActive = false;
-      console.log("Quagga停止");
+      if (Quagga) {
+        Quagga.stop();
+        scannerActive = false;
       }
     }
-    
+
     document.getElementById("startScan").addEventListener("click", startQuagga);
     document.getElementById("stopScan").addEventListener("click", stopQuagga);
 
@@ -167,12 +156,10 @@
       const formData = new FormData(e.target);
       const bookData = Object.fromEntries(formData.entries());
 
-      if (!bookData.title.trim() && !bookData.author.trim()) {
-        alert("タイトルまたは著者を入力してください（例: タイトル: 'サンプル本', 著者: '山田 太郎'）。");
+      if (!bookData.isbn.trim()) {
+        alert("ISBNコードを入力してください。");
         return;
       }
-
-
 
       try {
         const response = await fetch(
@@ -194,7 +181,6 @@
         alert("登録エラーが発生しました。");
       }
     });
-    }
   </script>
 </body>
 </html>
