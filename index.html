@@ -89,25 +89,34 @@
 
     // Google Books APIでISBNから書誌情報を取得
     async function fetchBookInfo(isbn) {
-      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.totalItems > 0) {
-          const book = data.items[0].volumeInfo;
-          document.getElementById('isbn').value = isbn;
-          document.getElementById('title').value = book.title || '';
-          document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
-          document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
-          document.getElementById('genre').value = book.categories ? book.categories[0] : '';
-        } else {
-          console.warn("書誌情報が見つかりませんでした");
-        }
-      } catch (error) {
-        console.error("Google Books APIエラー:", error);
-      }
-    }
+  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
 
+    if (data.totalItems > 0) {
+      const book = data.items[0].volumeInfo;
+
+      // フォームに書誌情報を入力
+      document.getElementById('isbn').value = isbn;
+      document.getElementById('title').value = book.title || '';
+      document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
+      document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
+      document.getElementById('genre').value = book.categories ? book.categories[0] : '';
+    } else {
+      // 書誌情報が見つからなかった場合の処理
+      alert("書誌情報が見つかりませんでした。手動で入力してください。");
+      document.getElementById('isbn').value = isbn;
+      document.getElementById('title').value = '';
+      document.getElementById('author').value = '';
+      document.getElementById('year').value = '';
+      document.getElementById('genre').value = '';
+    }
+  } catch (error) {
+    console.error("Google Books APIエラー:", error);
+    alert("書誌情報の取得中にエラーが発生しました。");
+  }
+}
         // QuaggaJSを使ったバーコードスキャン
     async function startQuagga() {
       if (scannerActive) return;
@@ -118,7 +127,9 @@
             name: "Live",
             type: "LiveStream",
             target: document.querySelector("#barcodeScanner"),
-            constraints: { facingMode: "environment" },
+            constraints: { facingMode: { ideal: "environment" } },
+            width: { min: 640 }, // 必要であれば幅を指定
+            height: { min: 480 } // 必要であれば高さを指定
           },
           decoder: { readers: ["ean_reader"] },
         },
@@ -141,6 +152,13 @@
       });
     }
 
+    function stopQuagga() {
+      Quagga.stop();
+      scannerActive = false;
+      console.log("Quagga停止");
+      }
+    }
+    
     document.getElementById("startScan").addEventListener("click", startQuagga);
     document.getElementById("stopScan").addEventListener("click", stopQuagga);
 
@@ -150,9 +168,10 @@
       const bookData = Object.fromEntries(formData.entries());
 
       if (!bookData.title.trim() && !bookData.author.trim()) {
-        alert("タイトルまたは著者のいずれかを入力してください。");
+        alert("タイトルまたは著者を入力してください（例: タイトル: 'サンプル本', 著者: '山田 太郎'）。");
         return;
       }
+
 
 
       try {
