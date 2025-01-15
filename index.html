@@ -173,13 +173,11 @@
         const result = await response.json();
         if (result.success) {
           alert("登録が完了しました！");
+        } else if (result.message === "このISBNコードは既に登録されています。") {
+          alert("エラー: ISBNコードが既に登録されています。");
         } else {
           alert(`登録に失敗しました: ${result.message}`);
         }
-      } catch (error) {
-        console.error("登録エラー:", error);
-        alert("登録エラーが発生しました。");
-      }
     });
   </script>
 </body>
