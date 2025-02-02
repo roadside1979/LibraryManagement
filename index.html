@@ -89,6 +89,16 @@
     const GOOGLE_BOOKS_API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw";
     let scannerActive = false;
 
+    // スキャン検出時のコールバック関数を変数に保存しておきます
+    async function onBarcodeDetected(data) {
+      const isbn = data.codeResult.code;
+      // 検出後、コールバックを解除してからスキャンを停止する
+      Quagga.offDetected(onBarcodeDetected);
+      Quagga.stop();
+      scannerActive = false;
+      await fetchBookInfo(isbn);
+    }
+
     async function fetchBookInfo(isbn) {
       const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
       try {
@@ -132,19 +142,16 @@
             return;
           }
           Quagga.start();
+          // スキャン開始後、検出イベントを登録します
+          Quagga.onDetected(onBarcodeDetected);
         }
       );
-
-      Quagga.onDetected(async (data) => {
-        const isbn = data.codeResult.code;
-        Quagga.stop();
-        scannerActive = false;
-        await fetchBookInfo(isbn);
-      });
     }
 
     function stopQuagga() {
       if (Quagga) {
+        // イベントリスナーも解除する
+        Quagga.offDetected(onBarcodeDetected);
         Quagga.stop();
         scannerActive = false;
       }
