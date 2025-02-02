@@ -89,13 +89,19 @@
     const GOOGLE_BOOKS_API_KEY = "AIzaSyCPhpJyXS6o8dL4K_o9M2ZDLYm9NWBQQxw";
     let scannerActive = false;
 
-    // スキャン検出時のコールバック関数を変数に保存しておきます
+    // 検出時のコールバック関数（ISBNコードをtrimして使います）
     async function onBarcodeDetected(data) {
-      const isbn = data.codeResult.code;
-      // 検出後、コールバックを解除してからスキャンを停止する
+      // data.codeResult.codeから取得したISBNに余計な空白が入っている場合があるのでtrim()を適用
+      const rawIsbn = data.codeResult.code;
+      const isbn = rawIsbn.trim();
+      console.log("検出されたISBN:", isbn);  // デバッグ用（ブラウザの開発者ツールで確認できます）
+      
+      // イベントリスナーを解除し、スキャンを停止する
       Quagga.offDetected(onBarcodeDetected);
       Quagga.stop();
       scannerActive = false;
+      
+      // ISBNから書誌情報を取得する
       await fetchBookInfo(isbn);
     }
 
@@ -104,7 +110,8 @@
       try {
         const response = await fetch(url);
         const data = await response.json();
-
+        console.log("Google Books APIからの応答:", data);  // 応答内容も確認できるように
+        
         if (data.totalItems > 0) {
           const book = data.items[0].volumeInfo;
           document.getElementById('isbn').value = isbn;
@@ -142,7 +149,7 @@
             return;
           }
           Quagga.start();
-          // スキャン開始後、検出イベントを登録します
+          // スキャン開始後、検出イベントを登録
           Quagga.onDetected(onBarcodeDetected);
         }
       );
@@ -150,7 +157,6 @@
 
     function stopQuagga() {
       if (Quagga) {
-        // イベントリスナーも解除する
         Quagga.offDetected(onBarcodeDetected);
         Quagga.stop();
         scannerActive = false;
