@@ -58,8 +58,10 @@
 
   <!-- 蔵書登録フォーム -->
   <form id="addBookForm">
+    <!-- 【修正】Google Apps Script側で必要な action パラメータをPOST本文に含めるための隠しフィールド -->
+    <input type="hidden" name="action" value="addBook">
     <label for="isbn">ISBNコード:</label>
-    <input type="text" id="isbn" name="isbn" placeholder="ISBNコード" ><br>
+    <input type="text" id="isbn" name="isbn" placeholder="ISBNコード"><br>
     <label for="title">タイトル:</label>
     <input type="text" id="title" name="title" placeholder="タイトル"><br>
     <input type="text" id="author" name="author" placeholder="著者"><br>
