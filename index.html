@@ -105,28 +105,32 @@
       await fetchBookInfo(isbn);
     }
 
-    async function fetchBookInfo(isbn) {
-      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        console.log("Google Books APIからの応答:", data);  // 応答内容も確認できるように
-        
-        if (data.totalItems > 0) {
-          const book = data.items[0].volumeInfo;
-          document.getElementById('isbn').value = isbn;
-          document.getElementById('title').value = book.title || '';
-          document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
-          document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
-          document.getElementById('genre').value = book.categories ? book.categories[0] : '';
-        } else {
-          alert("書誌情報が見つかりませんでした。手動で入力してください。");
-        }
-      } catch (error) {
-        console.error("Google Books APIエラー:", error);
-        alert("書誌情報の取得中にエラーが発生しました。");
-      }
+async function fetchBookInfo(isbn) {
+  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.totalItems > 0) {
+      const book = data.items[0].volumeInfo;
+      document.getElementById('isbn').value = isbn;
+      document.getElementById('title').value = book.title || '';
+      document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
+      document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
+      document.getElementById('genre').value = book.categories ? book.categories[0] : '';
+    } else {
+      alert("書誌情報が見つかりませんでした。手動で入力してください。");
     }
+  } catch (error) {
+    console.error("Google Books APIエラー:", error);
+    alert("書誌情報の取得中にエラーが発生しました。");
+  } finally {
+    // 💡 カメラ停止と状態リセットを必ず実行
+    Quagga.offDetected(onBarcodeDetected);
+    Quagga.stop();
+    scannerActive = false;
+  }
+}
+
 
     async function startQuagga() {
       if (scannerActive) return;
