@@ -96,7 +96,15 @@
       // data.codeResult.codeから取得したISBNに余計な空白が入っている場合があるのでtrim()を適用
       const rawIsbn = data.codeResult.code;
       const isbn = rawIsbn.trim();
-      console.log("検出されたISBN:", isbn);  // デバッグ用（ブラウザの開発者ツールで確認できます）
+      console.log("検出されたバーコード:", isbn);  // デバッグ用（ブラウザの開発者ツールで確認できます）
+      console.log("バーコード形式:", data.codeResult.format);
+      
+      // ISBNの妥当性をチェック（数字のみで構成されているか）
+      if (!/^\d+$/.test(isbn)) {
+        console.log("無効なバーコード形式です:", isbn);
+        alert("無効なバーコードです。ISBNコードをスキャンしてください。");
+        return;
+      }
       
       // イベントリスナーを解除し、スキャンを停止する
       Quagga.offDetected(onBarcodeDetected);
@@ -108,20 +116,45 @@
     }
 
 async function fetchBookInfo(isbn) {
-  const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${GOOGLE_BOOKS_API_KEY}`;
   try {
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.totalItems > 0) {
-      const book = data.items[0].volumeInfo;
-      document.getElementById('isbn').value = isbn;
-      document.getElementById('title').value = book.title || '';
-      document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
-      document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
-      document.getElementById('genre').value = book.categories ? book.categories[0] : '';
-    } else {
-      alert("書誌情報が見つかりませんでした。手動で入力してください。");
+    // ISBNの形式を正規化（ハイフンを除去し、13桁または10桁に調整）
+    const normalizedIsbn = isbn.replace(/[-\s]/g, '');
+    console.log("正規化されたISBN:", normalizedIsbn);
+    
+    // 複数の検索方法を試す
+    const searchQueries = [
+      `isbn:${normalizedIsbn}`,
+      `isbn:${isbn}`,
+      normalizedIsbn
+    ];
+    
+    for (const query of searchQueries) {
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&key=${GOOGLE_BOOKS_API_KEY}`;
+      console.log("試行中の検索クエリ:", query);
+      
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log("API応答:", data);
+        
+        if (data.totalItems > 0) {
+          const book = data.items[0].volumeInfo;
+          document.getElementById('isbn').value = normalizedIsbn;
+          document.getElementById('title').value = book.title || '';
+          document.getElementById('author').value = book.authors ? book.authors.join(', ') : '';
+          document.getElementById('year').value = book.publishedDate ? book.publishedDate.split('-')[0] : '';
+          document.getElementById('genre').value = book.categories ? book.categories[0] : '';
+          console.log("書誌情報取得成功:", book);
+          return; // 成功したら終了
+        }
+      } catch (error) {
+        console.error(`検索クエリ "${query}" でのエラー:`, error);
+      }
     }
+    
+    // すべての検索方法が失敗した場合
+    console.log("すべての検索方法で書誌情報が見つかりませんでした");
+    alert("書誌情報が見つかりませんでした。手動で入力してください。");
   } catch (error) {
     console.error("Google Books APIエラー:", error);
     alert("書誌情報の取得中にエラーが発生しました。");
@@ -143,9 +176,29 @@ async function fetchBookInfo(isbn) {
             name: "Live",
             type: "LiveStream",
             target: document.querySelector("#barcodeScanner"),
-            constraints: { facingMode: { ideal: "environment" } }
+            constraints: { 
+              facingMode: { ideal: "environment" },
+              width: { min: 640 },
+              height: { min: 480 }
+            }
           },
-          decoder: { readers: ["ean_reader"] },
+          decoder: { 
+            readers: [
+              "ean_reader",
+              "ean_8_reader",
+              "code_128_reader",
+              "code_39_reader",
+              "upc_reader",
+              "upc_e_reader"
+            ],
+            debug: {
+              drawBoundingBox: true,
+              showFrequency: true,
+              drawScanline: true,
+              showPattern: true
+            }
+          },
+          locate: true
         },
         function (err) {
           if (err) {
@@ -157,6 +210,7 @@ async function fetchBookInfo(isbn) {
           Quagga.start();
           // スキャン開始後、検出イベントを登録
           Quagga.onDetected(onBarcodeDetected);
+          console.log("バーコードスキャナーが開始されました");
         }
       );
     }
